@@ -14,7 +14,7 @@ public record CustomerRequest(
          @NotNull(message = "Le lastname du client est requis")
          @Email(message = "Le email du client est requis")
          String email,
-         Address phone
+         Address address
 ) {
 
 

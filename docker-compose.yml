@@ -1,17 +1,16 @@
 services:
   postgres:
     container_name: ms_pg_sql
-    image: postgres
+    image: postgres:latest
     environment:
       POSTGRES_USER: gallagher
       POSTGRES_PASSWORD: gallagher09
-      DATA: /var/lib/postgresql/data
     volumes:
       - postgres:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
-      microservices-net:
+      - microservices-net
     restart: unless-stopped
 
 
