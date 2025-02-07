@@ -1,4 +1,4 @@
-package com.gallagher.ecommerce.categories;
+package com.gallagher.ecommerce.Categories;
 
 import com.gallagher.ecommerce.products.Product;
 import jakarta.persistence.*;

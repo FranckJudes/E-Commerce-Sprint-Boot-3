@@ -53,6 +53,7 @@ public class ProductService {
             var newAvailableQuantity = product.getAvailableQuantity() - productRequest.quantity();
             product.setAvailableQuantity((int) newAvailableQuantity);
             repository.save(product);
+            purchasedProducts.add(mapper.toProductPurcharseResponse(product,productRequest.quantity()));
         }
         return purchasedProducts;
     }

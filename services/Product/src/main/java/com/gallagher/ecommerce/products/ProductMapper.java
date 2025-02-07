@@ -1,6 +1,7 @@
 package com.gallagher.ecommerce.products;
 
 
+import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -29,6 +30,16 @@ public class ProductMapper {
                 product.getCategory().getId(),
                 product.getCategory().getName(),
                 product.getCategory().getDescription()
+        );
+    }
+
+    public ProductPurchaseResponse toProductPurcharseResponse(Product product, @NotNull(message = "Quabtity is mandatory") double quantity) {
+        return new ProductPurchaseResponse(
+            product.getId(),
+            product.getName(),
+            product.getDescription(),
+            product.getPrice(),
+            quantity
         );
     }
 }

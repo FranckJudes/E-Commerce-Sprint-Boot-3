@@ -1,6 +1,6 @@
 package com.gallagher.ecommerce.products;
 
-import com.gallagher.ecommerce.categories.Category;
+import com.gallagher.ecommerce.Categories.Category;
 import jakarta.persistence.*;
 import lombok.*;
 
