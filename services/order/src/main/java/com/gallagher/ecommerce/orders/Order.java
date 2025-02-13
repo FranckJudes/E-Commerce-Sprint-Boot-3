@@ -19,6 +19,7 @@ import java.util.List;
 @Entity
 @Setter
 @EntityListeners(AuditingEntityListener.class)
+
 @Table(name = "customer_order")
 public class Order {
     @Id
@@ -31,7 +32,7 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
 
-    private String CustomerId;
+    private String customerId;
     @OneToMany(mappedBy = "order")
     private List<OrderLine> orderLine;
 

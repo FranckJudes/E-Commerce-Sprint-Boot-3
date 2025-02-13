@@ -11,5 +11,5 @@ public record PurchaseRequest(
         double quantity
 
 ) {
-    }
+}
 

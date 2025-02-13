@@ -1,5 +1,8 @@
 package com.gallagher.ecommerce.orders;
 
+import com.gallagher.ecommerce.customers.CustomerClient;
+import com.gallagher.ecommerce.exceptions.BusinessException;
+import com.gallagher.ecommerce.product.ProductClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -7,7 +10,33 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class OrderService {
 
-    public Integer createdOrder(OrderRequest order) {
-        
+    private final CustomerClient customerClient;
+    private final ProductClient productClient;
+    private final OrdeRepository repository;
+    private final OrdeLineService orderlineService;
+    private final OrderMapper mapper;
+    public Integer createdOrder(OrderRequest request) {
+        //Check the customer -> OpenFeign
+        var customer = this.customerClient.findCustomerById(request.customerId())
+                .orElseThrow(() -> new BusinessException("Cannot creeate order:: No Customer exists with the provided ID"));
+
+        // Purchase the products -> products-ms (RestTemplates)
+
+        this.productClient.purchaseResponse(request.products());
+
+        // persist order
+        var order = this.repository.save(mapper.toOrder(request));
+
+        // persist order lines
+
+        for (PurchaseRequest purchaseRequest : request.products()) {
+
+        }
+
+        //  Start payment process
+
+        // send the confirmation -> notification-ms( kafka)
+
+        return null;
     }
 }
