@@ -1,6 +1,7 @@
 package com.gallagher.ecommerce.products;
 
 
+import com.gallagher.ecommerce.Categories.Category;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +15,7 @@ public class ProductMapper {
                 .description(request.description())
                 .price(request.price())
                 .availableQuantity((int) request.availableQuantity())
-                .category(com.gallagher.ecommerce.categories.Category.builder()
+                .category(Category.builder()
                                                  .id(request.category_id())
                                                  .build())
                 .build();

@@ -13,7 +13,7 @@ public record OrderRequest(
         Integer id,
         String reference,
 
-        @Positive(message = "Order amoubt should be positive")
+        @Positive(message = "Order amount should be positive")
         BigDecimal amount,
 
         @NotNull(message = "Payment method should be precised")

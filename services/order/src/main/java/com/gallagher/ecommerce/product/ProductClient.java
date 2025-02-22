@@ -20,7 +20,7 @@ public class ProductClient {
     private String productUrl;
     private final RestTemplate restTemplate;
 
-    public List<PurchaseResponse> purchaseResponse(List<PurchaseRequest> requestBody){
+    public List<PurchaseResponse> purchaseProducts(List<PurchaseRequest> requestBody){
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 

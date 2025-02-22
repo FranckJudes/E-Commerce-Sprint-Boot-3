@@ -2,7 +2,7 @@ package com.gallagher.ecommerce.products;
 
 import java.math.BigDecimal;
 
-public record ProductPurchaseResponse(
+public record  ProductPurchaseResponse(
         Integer productId,
         String name,
 
