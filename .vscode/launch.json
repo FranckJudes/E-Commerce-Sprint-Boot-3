@@ -2,6 +2,12 @@
     "configurations": [
         {
             "type": "java",
+            "name": "PaymentApplication",
+            "request": "launch",
+            "mainClass": "com.gallagher.ecommerce.PaymentApplication"
+        },
+        {
+            "type": "java",
             "name": "Spring Boot-ConfigServerApplication<config-server>",
             "request": "launch",
             "cwd": "${workspaceFolder}",

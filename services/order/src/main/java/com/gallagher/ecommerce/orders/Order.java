@@ -19,7 +19,6 @@ import java.util.List;
 @Entity
 @Setter
 @EntityListeners(AuditingEntityListener.class)
-
 @Table(name = "customer_order")
 public class Order {
     @Id
@@ -33,8 +32,9 @@ public class Order {
     private PaymentMethod paymentMethod;
 
     private String customerId;
+
     @OneToMany(mappedBy = "order")
-    private List<OrderLine> orderLine;
+    private List<OrderLine> orderLines;
 
     @CreatedDate
     @Column(updatable = false, nullable = false)

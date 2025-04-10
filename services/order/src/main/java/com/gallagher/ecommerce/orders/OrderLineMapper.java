@@ -1,6 +1,8 @@
 package com.gallagher.ecommerce.orders;
 
 import com.gallagher.ecommerce.orderline.OrderLineRequest;
+import com.gallagher.ecommerce.orderline.OrderLineResponse;
+
 import org.springframework.stereotype.Service;
 
 
@@ -10,7 +12,7 @@ public class OrderLineMapper {
         new OrderLine();
         return
                  OrderLine.builder()
-                        .id(String.valueOf(request.id()))
+                        .id(request.id())
                         .quantity((int) request.quantity())
                         .order(
                                 Order.builder()
@@ -20,4 +22,10 @@ public class OrderLineMapper {
                         .produitId(request.productId())
                         .build();
     }
+
+
+    public OrderLineResponse toOrderLineResponse(OrderLine orderLine){
+            return new OrderLineResponse(orderLine.getId(), orderLine.getQuantity());
+    }
 }
+
