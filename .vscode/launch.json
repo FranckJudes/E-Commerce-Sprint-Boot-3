@@ -2,6 +2,24 @@
     "configurations": [
         {
             "type": "java",
+            "name": "NotificationApplication",
+            "request": "launch",
+            "mainClass": "com.gallagher.notification.NotificationApplication"
+        },
+        {
+            "type": "java",
+            "name": "FinancesApplication",
+            "request": "launch",
+            "mainClass": "com.example.finances.FinancesApplication"
+        },
+        {
+            "type": "java",
+            "name": "PayementsApplication",
+            "request": "launch",
+            "mainClass": "com.example.payements.PayementsApplication"
+        },
+        {
+            "type": "java",
             "name": "PaymentApplication",
             "request": "launch",
             "mainClass": "com.gallagher.ecommerce.PaymentApplication"
@@ -36,7 +54,8 @@
             "mainClass": "com.gallagher.ecommerce.CustomerApplication",
             "projectName": "customer",
             "args": "",
-            "envFile": "${workspaceFolder}/.env"
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=39831 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=customer"
         },
         {
             "type": "java",
@@ -55,6 +74,37 @@
             "cwd": "${workspaceFolder}",
             "mainClass": "com.gallagher.ecommerce.OrderApplication",
             "projectName": "order",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=33475 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=order"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-NotificationApplication<notification>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.gallagher.ecommerce.NotificationApplication",
+            "projectName": "notification",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-FinancesApplication<finances>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.example.finances.FinancesApplication",
+            "projectName": "finances",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-GatewayApplication<gateway>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.example.ecommerce.GatewayApplication",
+            "projectName": "gateway",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
         }

@@ -5,6 +5,8 @@ import com.gallagher.ecommerce.exceptions.BusinessException;
 import com.gallagher.ecommerce.kafka.OrderConfirmation;
 import com.gallagher.ecommerce.kafka.OrderProducer;
 import com.gallagher.ecommerce.orderline.OrderLineRequest;
+import com.gallagher.ecommerce.payment.PaymentClient;
+import com.gallagher.ecommerce.payment.PaymentRequest;
 import com.gallagher.ecommerce.product.ProductClient;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -25,6 +27,7 @@ public class OrderService {
     private final OrdeLineService orderlineService;
     private final OrderMapper mapper;
     private final OrderProducer orderProducer;
+    private final PaymentClient paymentClient;
 
     public Integer createdOrder(OrderRequest request) {
 
@@ -54,6 +57,15 @@ public class OrderService {
         }
 
         //  Start payment process
+        var paymentRequest = new PaymentRequest(
+                request.amount(),
+                request.paymentMethod(),
+                order.getId(),
+                request.reference(),
+                customer
+        );
+
+       paymentClient.requestOrderPayment(paymentRequest);
 
         orderProducer.sendOrderConfirmation(
                 new OrderConfirmation(request.reference(), request.amount(), request.paymentMethod(), customer, purchaseProducts)
