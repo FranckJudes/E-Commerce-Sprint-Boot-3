@@ -6,5 +6,5 @@ RUN mvn clean package -DskipTests
 
 FROM eclipse-temurin:17-jre-alpine     
 VOLUME /tmp
-COPY --from=build /app/target/Gateway.jar Gateway.jar
-ENTRYPOINT [ "java","-jar","/Gateway.jar" ]
+COPY --from=build /app/target/Product.jar Product.jar
+ENTRYPOINT [ "java","-jar","/Product.jar" ]
