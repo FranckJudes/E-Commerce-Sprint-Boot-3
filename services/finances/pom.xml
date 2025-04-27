@@ -123,6 +123,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<finalName>Finances</finalName>
 	</build>
 
 </project>

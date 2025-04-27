@@ -1,38 +1,74 @@
 spring:
   cloud:
     gateway:
+      # 1) Découverte dynamique via Eureka
       discovery:
         locator:
-            enabled: true
+          enabled: true
+          lower-case-service-id: true   # routes en minuscules
+
+      # 2) Routes fonctionnelles
       routes:
+        # --- Customer ---
         - id: customer-service
           uri: lb://CUSTOMER-SERVICE
           predicates:
             - Path=/api/v1/customers/**
-        
+        - id: customer-service-docs
+          uri: lb://CUSTOMER-SERVICE
+          predicates:
+            - Path=/customers/api-docs
+
+        # --- Product ---
         - id: product-service
           uri: lb://PRODUCT-SERVICE
           predicates:
             - Path=/api/v1/products/**
-        
+        - id: product-service-docs
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+            - Path=/products/api-docs
+
+        # --- Order line ---
         - id: order-line-service
           uri: lb://ORDER-SERVICE
           predicates:
             - Path=/api/v1/order-lines/**
-
+        # --- Order ---
         - id: order-service
           uri: lb://ORDER-SERVICE
           predicates:
             - Path=/api/v1/orders/**
+        - id: order-service-docs
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/orders/api-docs
 
+        # --- Payment ---
         - id: payment-service
           uri: lb://PAYMENT-SERVICE
           predicates:
             - Path=/api/v1/payments/**
+        - id: payment-service-docs
+          uri: lb://PAYMENT-SERVICE
+          predicates:
+            - Path=/payments/api-docs
 
-
-
+springdoc:
+  swagger-ui:
+    path: /swagger-ui          # Interface centrale
+    urls:                      # Liste affichée dans le menu
+      - name: customer-service
+        url: /customers/api-docs
+      - name: product-service
+        url: /products/api-docs
+      - name: order-service
+        url: /orders/api-docs
+      - name: payment-service
+        url: /payments/api-docs
+  api-docs:
+    enabled: true
+    path: /gateway/api-docs    # YAML/JSON fusionné
 
 server:
-    port: 8222
-     
+  port: 8222

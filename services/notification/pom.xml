@@ -114,6 +114,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<finalName>Notification</finalName>
 	</build>
 
 </project>

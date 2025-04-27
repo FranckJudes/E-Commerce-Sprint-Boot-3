@@ -1,0 +1,29 @@
+name: 🚀 Deploy website on push
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  web-deploy:
+    name: 🎉 Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v3
+
+    - name: 🔑 Add VPS to known_hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
+
+    - name: 📂 Sync files via rsync
+      uses: easingthemes/ssh-deploy@v4          
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        REMOTE_HOST:      ${{ secrets.HOST }}
+        REMOTE_USER:      ${{ secrets.SSH_USER }}
+        TARGET:           ${{ secrets.TARGET_DIR }}   
+        SOURCE:           "./"                       
+        ARGS:            "-az --delete --exclude=.git*"
