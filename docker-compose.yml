@@ -104,8 +104,6 @@ services:
     networks:
       - microservices-net
 
-    networks:
-      - microservices-net
 
   keycloak:
     container_name: ms_keycloak
