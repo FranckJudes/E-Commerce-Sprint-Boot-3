@@ -1,23 +1,116 @@
-name: 🚀 Build & Deploy Spring APP
+name: 🚀 Build & Deploy Microservices
+
 on:
   push:
     branches: [ main ]
 
 jobs:
-  web-deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v3
 
-    - name: 🚚 Get latest code
-      uses: actions/checkout@v3
+      - name: 📦 Setup JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+          cache: maven
 
-    - name: 📂 Sync files via rsync
-      uses: easingthemes/ssh-deploy@v4
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        REMOTE_HOST:      ${{ secrets.HOST }}
-        REMOTE_USER:      ${{ secrets.SSH_USER }}
-        TARGET:           ${{ secrets.TARGET_DIR }}
-        SOURCE:           "./"
-        ARGS:             "-az --delete --exclude=.git*"
+      - name: 🔐 Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: ⚙️ Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Build Config Server
+      - name: 🏗️ Build and push Config Server
+        working-directory: ./services/config-server
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-config-server:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-config-server:latest
+
+      # Build Discovery Service
+      - name: 🏗️ Build and push Discovery Service
+        working-directory: ./services/discovery
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-discovery:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-discovery:latest
+
+      # Build API Gateway
+      - name: 🏗️ Build and push API Gateway
+        working-directory: ./services/gateway
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-gateway:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-gateway:latest
+
+      # Build Customer Service
+      - name: 🏗️ Build and push Customer Service
+        working-directory: ./services/customer
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-customer:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-customer:latest
+
+      # Build Product Service
+      - name: 🏗️ Build and push Product Service
+        working-directory: ./services/Product
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-product:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-product:latest
+
+      # Build Order Service
+      - name: 🏗️ Build and push Order Service
+        working-directory: ./services/order
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-order:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-order:latest
+
+      # Build Finance Service
+      - name: 🏗️ Build and push Finance Service
+        working-directory: ./services/finances
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-finances:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-finances:latest
+
+      # Build Notification Service
+      - name: 🏗️ Build and push Notification Service
+        working-directory: ./services/notification
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest
+
+      # Deploy via SSH to VPS
+      - name: 📂 Sync files via rsync
+        uses: easingthemes/ssh-deploy@v4
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.HOST }}
+          REMOTE_USER: ${{ secrets.SSH_USER }}
+          TARGET: ${{ secrets.TARGET_DIR }}
+          SOURCE: "./docker-compose.yml"
+          ARGS: "-rltgoDzvO"
+
+      # Run docker-compose on remote server
+      - name: 🚀 Execute remote SSH commands
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.TARGET_DIR }}
+            docker-compose pull
+            docker-compose up -d
