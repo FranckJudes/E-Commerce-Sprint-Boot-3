@@ -92,17 +92,35 @@ jobs:
           docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest .
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest
 
-      # Prepare and copy files via SSH
-      - name: 📂 Prepare and copy files
+          # Prepare remote server
+      - name: 🛠️ Prepare remote server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Ensure necessary tools are installed
-           
-            dnf install -y tar
+            # Update package list
+            sudo dnf update -y
+
+            # Install Docker if not already installed
+            if ! command -v docker &> /dev/null; then
+              sudo dnf config-manager --add-repo=https://download.docker.com/linux/fedora/docker-ce.repo
+              sudo dnf install -y docker-ce docker-ce-cli containerd.io
+              sudo systemctl start docker
+              sudo systemctl enable docker
+              sudo usermod -aG docker $USER
+            fi
+
+            # Install Docker Compose if not already installed
+            if ! command -v docker-compose &> /dev/null; then
+              DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+              sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+            fi
+
+            # Ensure tar is installed (for SCP)
+            sudo dnf install -y tar
 
       # Copy docker-compose.yml via SCP
       - name: 📂 Copy docker-compose.yml
@@ -115,7 +133,7 @@ jobs:
           target: ${{ secrets.TARGET_DIR }}
 
       # Run docker-compose on remote server
-      - name: 🚀 Execute remote SSH commands
+      - name: 🚀 Deploy Services
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
@@ -124,4 +142,4 @@ jobs:
           script: |
             cd ${{ secrets.TARGET_DIR }}
             docker-compose pull
-            docker-compose up -d
+        docker-compose up -d
