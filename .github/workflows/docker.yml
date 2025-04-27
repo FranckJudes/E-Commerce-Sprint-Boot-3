@@ -92,16 +92,15 @@ jobs:
           docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest .
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest
 
-    # Deploy via rsync
-      - name: 📂 Sync files via rsync
-        uses: easingthemes/ssh-deploy@v4
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.HOST }}
-          REMOTE_USER: ${{ secrets.SSH_USER }}
-          TARGET: ${{ secrets.TARGET_DIR }}
-          SOURCE: "./docker-compose.yml"
-          ARGS: "-rltgoDzvO"
+        # Copy docker-compose.yml via SCP
+      - name: 📂 Copy docker-compose.yml
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "./docker-compose.yml"
+          target: ${{ secrets.TARGET_DIR }}
 
       # Run docker-compose on remote server
       - name: 🚀 Execute remote SSH commands
@@ -111,10 +110,6 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Install rsync if not already present
-            # sudo apt-get update
-            dnf install -y rsync
-            
             cd ${{ secrets.TARGET_DIR }}
             docker-compose pull
             docker-compose up -d
