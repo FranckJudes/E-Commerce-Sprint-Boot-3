@@ -10,142 +10,124 @@ jobs:
 
     steps:
       - name: 🚚 Get latest code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # Mise à jour vers la dernière version
 
       - name: 📦 Setup JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4  # Mise à jour vers la dernière version
         with:
           java-version: '17'
           distribution: 'corretto'
           cache: maven
 
       - name: 🔐 Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3  # Mise à jour vers la dernière version
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
       - name: ⚙️ Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3  # Mise à jour vers la dernière version
 
-      # Build Config Server
-      - name: 🏗️ Build and push Config Server
-        working-directory: ./services/config-server
+      # Fonction générique pour build et push des services
+      - name: 🏗️ Build and Push Services
+        env:
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
         run: |
-          ./mvnw clean package -DskipTests
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-config-server:latest .
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-config-server:latest
+          services=(
+            "config-server"
+            "discovery"
+            "gateway"
+            "customer"
+            "Product"
+            "order"
+            "finances"
+            "notification"
+          )
 
-      # Build Discovery Service
-      - name: 🏗️ Build and push Discovery Service
-        working-directory: ./services/discovery
-        run: |
-          ./mvnw clean package -DskipTests
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-discovery:latest .
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-discovery:latest
+          for service in "${services[@]}"; do
+            # Déterminer le chemin du service
+            service_path="./services/${service}"
+            
+            # Nom du service pour Docker Hub
+            service_name=$(echo "${service}" | sed 's/^./\U&/')
+            
+            echo "🔨 Building ${service} service..."
+            cd "${service_path}"
+            
+            # Build Maven
+            ./mvnw clean package -DskipTests
+            
+            # Build Docker Image
+            docker build -t "${DOCKER_HUB_USERNAME}/ecommerce-${service}:latest" .
+            
+            # Push Docker Image
+            docker push "${DOCKER_HUB_USERNAME}/ecommerce-${service}:latest"
+            
+            cd ../..
+          done
 
-      # Build API Gateway
-      - name: 🏗️ Build and push API Gateway
-        working-directory: ./services/gateway
-        run: |
-          ./mvnw clean package -DskipTests
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-gateway:latest .
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-gateway:latest
-
-      # Build Customer Service
-      - name: 🏗️ Build and push Customer Service
-        working-directory: ./services/customer
-        run: |
-          ./mvnw clean package -DskipTests
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-customer:latest .
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-customer:latest
-
-      # Build Product Service
-      - name: 🏗️ Build and push Product Service
-        working-directory: ./services/Product
-        run: |
-          ./mvnw clean package -DskipTests
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-product:latest .
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-product:latest
-
-      # Build Order Service
-      - name: 🏗️ Build and push Order Service
-        working-directory: ./services/order
-        run: |
-          ./mvnw clean package -DskipTests
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-order:latest .
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-order:latest
-
-      # Build Finance Service
-      - name: 🏗️ Build and push Finance Service
-        working-directory: ./services/finances
-        run: |
-          ./mvnw clean package -DskipTests
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-finances:latest .
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-finances:latest
-
-      # Build Notification Service
-      - name: 🏗️ Build and push Notification Service
-        working-directory: ./services/notification
-        run: |
-          ./mvnw clean package -DskipTests
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest .
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest
-
-      # Prepare remote server
-      - name: 🛠️ Prepare remote server
+      # Préparation du serveur distant avec des vérifications améliorées
+      - name: 🛠️ Prepare Remote Server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Update package list
-            sudo apt update -y
+            # Activer le mode strict pour les erreurs
+            set -e
 
-            # Install required dependencies
-            sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+            # Mise à jour des paquets avec gestion des erreurs
+            sudo apt update -y || { echo "Erreur lors de la mise à jour des paquets"; exit 1; }
 
-            # Install Docker if not already installed
+            # Installer les dépendances nécessaires
+            sudo apt install -y apt-transport-https ca-certificates curl software-properties-common || \
+            { echo "Erreur lors de l'installation des dépendances"; exit 1; }
+
+            # Installation de Docker
             if ! command -v docker &> /dev/null; then
-              # Add Docker's official GPG key
-              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+              echo "Installation de Docker..."
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - || \
+              { echo "Erreur lors de l'ajout de la clé GPG Docker"; exit 1; }
               
-              # Add Docker repository
-              sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+              sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" || \
+              { echo "Erreur lors de l'ajout du dépôt Docker"; exit 1; }
               
-              # Update package list again
               sudo apt update -y
+              sudo apt install -y docker-ce docker-ce-cli containerd.io || \
+              { echo "Erreur lors de l'installation de Docker"; exit 1; }
               
-              # Install Docker
-              sudo apt install -y docker-ce docker-ce-cli containerd.io
               sudo systemctl start docker
               sudo systemctl enable docker
               sudo usermod -aG docker $USER
             fi
 
-            # Install Docker Compose if not already installed
+            # Installation de Docker Compose
             if ! command -v docker-compose &> /dev/null; then
-              sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              echo "Installation de Docker Compose..."
+              sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose || \
+              { echo "Erreur lors du téléchargement de Docker Compose"; exit 1; }
               sudo chmod +x /usr/local/bin/docker-compose
             fi
 
-            # Ensure tar is installed (for SCP)
+            # Installer tar si nécessaire
             sudo apt install -y tar
 
-      # Copy docker-compose.yml via SCP
+      # Copie sécurisée du docker-compose.yml
       - name: 📂 Copy docker-compose.yml
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "./docker-compose.yml"
+          source: 
+            - "./docker-compose.yml"
+            - "./.env"  # Ajout optionnel du fichier d'environnement
           target: ${{ secrets.TARGET_DIR }}
           strip_components: 1
           overwrite: true
 
-      # Run docker-compose on remote server
+      # Déploiement avec gestion des erreurs
       - name: 🚀 Deploy Services
         uses: appleboy/ssh-action@master
         with:
@@ -153,26 +135,24 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # Mode strict et gestion des erreurs
+            set -e
+
             # Créer le répertoire s'il n'existe pas
             mkdir -p ${{ secrets.TARGET_DIR }}
             cd ${{ secrets.TARGET_DIR }}
-            
-            # Afficher le contenu du répertoire pour débogage
-            ls -la
-            
-            # Vérifier l'existence du docker-compose.yml
-            if [ ! -f docker-compose.yml ]; then
-              echo "Error: docker-compose.yml not found!"
-              exit 1
-            fi
-            
-            # Login Docker Hub
-            echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
-            
-            # Pull et déployer
-            docker-compose pull
-            docker-compose up -d
-            
-            # Afficher les logs pour débogage
+
+            # Vérifications préalables
+            [ -f docker-compose.yml ] || { echo "Erreur : docker-compose.yml manquant !"; exit 1; }
+
+            # Login Docker Hub sécurisé
+            echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin || \
+            { echo "Erreur de connexion à Docker Hub"; exit 1; }
+
+            # Pull et déploiement avec gestion des erreurs
+            docker-compose pull || { echo "Erreur lors du pull des images"; exit 1; }
+            docker-compose up -d || { echo "Erreur lors du déploiement"; exit 1; }
+
+            # Vérifications post-déploiement
             docker-compose ps
-            docker-compose logs
+            docker-compose logs --tail=50
