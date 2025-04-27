@@ -14,14 +14,14 @@ jobs:
     - name: 🔑 Add VPS to known_hosts
       run: |
         mkdir -p ~/.ssh
-        ssh-keyscan -p 22 -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
+        ssh-keyscan -p 22 -H ${{ vars.HOST }} >> ~/.ssh/known_hosts
 
     - name: 📂 Sync files via rsync
       uses: easingthemes/ssh-deploy@v4
       env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        REMOTE_HOST:      ${{ secrets.HOST }}
-        REMOTE_USER:      ${{ secrets.SSH_USER }}
-        TARGET:           ${{ secrets.TARGET_DIR }}
+        SSH_PRIVATE_KEY: ${{ vars.SSH_PRIVATE_KEY }}
+        REMOTE_HOST:      ${{ vars.HOST }}
+        REMOTE_USER:      ${{ vars.SSH_USER }}
+        TARGET:           ${{ vars.TARGET_DIR }}
         SOURCE:           "./"
         ARGS:             "-az --delete --exclude=.git*"
