@@ -101,8 +101,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             # Ensure necessary tools are installed
-            sudo apt-get update
-            sudo apt-get install -y tar
+           
+            dnf install -y tar
 
       # Copy docker-compose.yml via SCP
       - name: 📂 Copy docker-compose.yml
