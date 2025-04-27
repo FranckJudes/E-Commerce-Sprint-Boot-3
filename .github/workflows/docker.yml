@@ -92,7 +92,19 @@ jobs:
           docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest .
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest
 
-        # Copy docker-compose.yml via SCP
+      # Prepare and copy files via SSH
+      - name: 📂 Prepare and copy files
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Ensure necessary tools are installed
+            sudo apt-get update
+            sudo apt-get install -y tar
+
+      # Copy docker-compose.yml via SCP
       - name: 📂 Copy docker-compose.yml
         uses: appleboy/scp-action@master
         with:
