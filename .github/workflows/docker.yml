@@ -10,63 +10,89 @@ jobs:
 
     steps:
       - name: 🚚 Get latest code
-        uses: actions/checkout@v4  # Mise à jour vers la dernière version
+        uses: actions/checkout@v3
 
       - name: 📦 Setup JDK
-        uses: actions/setup-java@v4  # Mise à jour vers la dernière version
+        uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'corretto'
           cache: maven
 
       - name: 🔐 Log in to Docker Hub
-        uses: docker/login-action@v3  # Mise à jour vers la dernière version
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
       - name: ⚙️ Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3  # Mise à jour vers la dernière version
+        uses: docker/setup-buildx-action@v2
 
-      # Fonction générique pour build et push des services
-      - name: 🏗️ Build and Push Services
-        env:
-          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      # Build Config Server
+      - name: 🏗️ Build and push Config Server
+        working-directory: ./services/config-server
         run: |
-          services=(
-            "config-server"
-            "discovery"
-            "gateway"
-            "customer"
-            "Product"
-            "order"
-            "finances"
-            "notification"
-          )
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-config-server:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-config-server:latest
 
-          for service in "${services[@]}"; do
-            # Déterminer le chemin du service
-            service_path="./services/${service}"
-            
-            # Nom du service pour Docker Hub
-            service_name=$(echo "${service}" | sed 's/^./\U&/')
-            
-            echo "🔨 Building ${service} service..."
-            cd "${service_path}"
-            
-            # Build Maven
-            ./mvnw clean package -DskipTests
-            
-            # Build Docker Image
-            docker build -t "${DOCKER_HUB_USERNAME}/ecommerce-${service}:latest" .
-            
-            # Push Docker Image
-            docker push "${DOCKER_HUB_USERNAME}/ecommerce-${service}:latest"
-            
-            cd ../..
-          done
+      # Build Discovery Service
+      - name: 🏗️ Build and push Discovery Service
+        working-directory: ./services/discovery
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-discovery:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-discovery:latest
 
-      # Préparation du serveur distant avec des vérifications améliorées
+      # Build API Gateway
+      - name: 🏗️ Build and push API Gateway
+        working-directory: ./services/gateway
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-gateway:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-gateway:latest
+
+      # Build Customer Service
+      - name: 🏗️ Build and push Customer Service
+        working-directory: ./services/customer
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-customer:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-customer:latest
+
+      # Build Product Service
+      - name: 🏗️ Build and push Product Service
+        working-directory: ./services/Product
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-product:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-product:latest
+
+      # Build Order Service
+      - name: 🏗️ Build and push Order Service
+        working-directory: ./services/order
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-order:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-order:latest
+
+      # Build Finance Service
+      - name: 🏗️ Build and push Finance Service
+        working-directory: ./services/finances
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-finances:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-finances:latest
+
+      # Build Notification Service
+      - name: 🏗️ Build and push Notification Service
+        working-directory: ./services/notification
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest
+
+    # Préparation du serveur distant avec des vérifications améliorées
       - name: 🛠️ Prepare Remote Server
         uses: appleboy/ssh-action@master
         with:
