@@ -92,7 +92,7 @@ jobs:
           docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest .
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest
 
-      # Deploy via SSH to VPS
+    # Deploy via rsync
       - name: 📂 Sync files via rsync
         uses: easingthemes/ssh-deploy@v4
         env:
@@ -111,6 +111,10 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # Install rsync if not already present
+            # sudo apt-get update
+            dnf install -y rsync
+            
             cd ${{ secrets.TARGET_DIR }}
             docker-compose pull
             docker-compose up -d
