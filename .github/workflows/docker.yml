@@ -1,4 +1,4 @@
-name: 🚀 Deploy website on push
+name: 🚀 Build & Deploy Spring APP
 on:
   push:
     branches: [ main ]
@@ -8,15 +8,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
     - name: 🚚 Get latest code
       uses: actions/checkout@v3
 
     - name: 📂 Sync files via rsync
       uses: easingthemes/ssh-deploy@v4
       env:
-        SSH_PRIVATE_KEY: ${{ vars.SSH_PRIVATE_KEY }}
-        REMOTE_HOST:      ${{ vars.HOST }}
-        REMOTE_USER:      ${{ vars.SSH_USER }}
-        TARGET:           ${{ vars.TARGET_DIR }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        REMOTE_HOST:      ${{ secrets.HOST }}
+        REMOTE_USER:      ${{ secrets.SSH_USER }}
+        TARGET:           ${{ secrets.TARGET_DIR }}
         SOURCE:           "./"
         ARGS:             "-az --delete --exclude=.git*"
