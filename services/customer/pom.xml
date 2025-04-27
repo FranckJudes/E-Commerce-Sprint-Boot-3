@@ -109,6 +109,7 @@
                 </configuration>
             </plugin>
         </plugins>
+        <finalName>Customer</finalName>
     </build>
 
 </project>

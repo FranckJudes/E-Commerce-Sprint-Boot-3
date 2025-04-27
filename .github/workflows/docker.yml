@@ -44,13 +44,13 @@ jobs:
           docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-discovery:latest .
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-discovery:latest
 
-      # # Build API Gateway
-      # - name: 🏗️ Build and push API Gateway
-      #   working-directory: ./services/gateway
-      #   run: |
-      #     ./mvnw clean package -DskipTests
-      #     docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-gateway:latest .
-      #     docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-gateway:latest
+      # Build API Gateway
+      - name: 🏗️ Build and push API Gateway
+        working-directory: ./services/gateway
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-gateway:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-gateway:latest
 
       # Build Customer Service
       - name: 🏗️ Build and push Customer Service
