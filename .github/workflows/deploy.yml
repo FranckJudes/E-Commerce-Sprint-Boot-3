@@ -1,0 +1,198 @@
+name: 🚀 Build & Deploy Microservices
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v3
+
+      - name: 📦 Setup JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+          cache: maven
+
+      - name: 🔐 Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: ⚙️ Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Build Config Server
+      - name: 🏗️ Build and push Config Server
+        working-directory: ./services/config-server
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-config-server:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-config-server:latest
+
+      # Build Discovery Service
+      - name: 🏗️ Build and push Discovery Service
+        working-directory: ./services/discovery
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-discovery:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-discovery:latest
+
+      # Build API Gateway
+      - name: 🏗️ Build and push API Gateway
+        working-directory: ./services/gateway
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-gateway:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-gateway:latest
+
+      # Build Customer Service
+      - name: 🏗️ Build and push Customer Service
+        working-directory: ./services/customer
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-customer:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-customer:latest
+
+      # Build Product Service
+      - name: 🏗️ Build and push Product Service
+        working-directory: ./services/Product
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-product:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-product:latest
+
+      # Build Order Service
+      - name: 🏗️ Build and push Order Service
+        working-directory: ./services/order
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-order:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-order:latest
+
+      # Build Finance Service
+      - name: 🏗️ Build and push Finance Service
+        working-directory: ./services/finances
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-finances:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-finances:latest
+
+      # Build Notification Service
+      - name: 🏗️ Build and push Notification Service
+        working-directory: ./services/notification
+        run: |
+          ./mvnw clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest
+
+
+      # Préparation du serveur distant
+      - name: 🛠️ Prepare Remote Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+
+            # Mise à jour et installation des dépendances
+            sudo apt update -y
+            sudo apt install -y apt-transport-https ca-certificates curl software-properties-common gnupg tar
+
+            # Installer Docker si absent
+            if ! command -v docker &> /dev/null; then
+              echo "Installation de Docker..."
+              sudo mkdir -p /etc/apt/keyrings
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+              echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+              sudo apt update -y
+              sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+              sudo systemctl start docker
+              sudo systemctl enable docker
+              sudo usermod -aG docker $USER
+            fi
+
+            # Vérifier docker compose plugin
+            if ! docker compose version &> /dev/null; then
+              echo "Installation de Docker Compose Plugin..."
+              sudo apt install -y docker-compose-plugin
+            fi
+            
+            # Créer le répertoire cible s'il n'existe pas
+            mkdir -p ${{ secrets.TARGET_DIR }}
+
+      # Vérifier la présence des fichiers dans le dépôt
+      - name: 📂 Vérifier les fichiers de configuration
+        run: |
+          ls -la
+          if [ -f "docker-compose.yml" ]; then
+            echo "✅ docker-compose.yml trouvé"
+          else
+            echo "❌ docker-compose.yml introuvable dans le dépôt!"
+            exit 1
+          fi
+          
+          if [ -f ".env" ]; then
+            echo "✅ .env trouvé"
+          else
+            echo "❌ .env introuvable dans le dépôt!"
+            # Créer un fichier .env à partir des secrets si nécessaire
+            echo "Création d'un fichier .env à partir des secrets..."
+            echo "DB_USER=${{ secrets.DB_USER }}" > .env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            # Ajoutez d'autres variables selon vos besoins
+          fi
+
+      # Copier les fichiers de configuration vers le serveur distant
+      - name: 📂 Copier les fichiers de configuration
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker-compose.yml,.env"
+          target: "${{ secrets.TARGET_DIR }}"
+          strip_components: 0
+
+      # Déploiement sur le serveur distant
+      - name: 🚀 Deploy Services
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+
+            cd ${{ secrets.TARGET_DIR }}
+            
+            # Vérifier que les fichiers ont bien été copiés
+            if [ ! -f "docker-compose.yml" ]; then
+              echo "Erreur : docker-compose.yml manquant sur le serveur!"
+              exit 1
+            fi
+            
+            if [ ! -f ".env" ]; then
+              echo "Erreur : .env manquant sur le serveur!"
+              exit 1
+            fi
+
+            echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+
+            # Arrêter et supprimer les conteneurs existants si nécessaire
+            docker compose down || true
+            
+            # Télécharger les images et démarrer les services
+            docker compose pull || { echo "Erreur lors du pull des images"; exit 1; }
+            docker compose up -d || { echo "Erreur lors du déploiement"; exit 1; }
+
+            # Afficher l'état des services
+            docker compose ps
+            docker compose logs --tail=50
