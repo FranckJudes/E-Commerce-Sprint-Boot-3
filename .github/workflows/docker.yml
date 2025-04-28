@@ -131,7 +131,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "docker-compose.yml .env"
+          source: "deploy/docker-compose.yml deploy/.env"
           target: ${{ secrets.TARGET_DIR }}
           strip_components: 1
           overwrite: true
