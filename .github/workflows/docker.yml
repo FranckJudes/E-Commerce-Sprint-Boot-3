@@ -125,8 +125,13 @@ jobs:
               sudo apt install -y docker-compose-plugin
             fi
 
-            # Copier docker-compose.yml et .env avec rsync
-      - name: 📂 Copy docker-compose.yml and .env using rsync
+      # Copier docker-compose.yml et .env avec rsync
+      - name: 📂 Vérifier la présence des fichiers
+        run: |
+          echo "Contenu du répertoire courant :"
+          ls -alh
+
+      - name: 📂 Copier docker-compose.yml et .env via rsync
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
@@ -139,13 +144,15 @@ jobs:
             echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
             chmod 600 private_key.pem
 
-            # Assurez-vous d'utiliser un chemin correct
-            if [ -f docker-compose.yml ] && [ -f .env ]; then
+            # Vérifier si les fichiers existent avant de les copier
+            if [ -f "docker-compose.yml" ] && [ -f ".env" ]; then
+              echo "Les fichiers existent, envoi en cours..."
               rsync -avz -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" docker-compose.yml .env ${{ secrets.SSH_USER }}@${{ secrets.HOST }}:${{ secrets.TARGET_DIR }}/
             else
               echo "Erreur : docker-compose.yml ou .env manquant !"
               exit 1
             fi
+
 
       # Déploiement sur le serveur distant
       - name: 🚀 Deploy Services
