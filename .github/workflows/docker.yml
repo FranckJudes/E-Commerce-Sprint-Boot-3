@@ -124,17 +124,20 @@ jobs:
               sudo apt install -y docker-compose-plugin
             fi
 
-      # Copier docker-compose.yml et .env
-      - name: 📂 Copy docker-compose.yml
-        uses: appleboy/scp-action@master
+            # Copier docker-compose.yml et .env avec rsync
+      - name: 📂 Copy docker-compose.yml and .env using rsync
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "deploy/docker-compose.yml deploy/.env"
-          target: ${{ secrets.TARGET_DIR }}
-          strip_components: 1
-          overwrite: true
+          script: |
+            set -e
+
+            mkdir -p ${{ secrets.TARGET_DIR }}
+
+            rsync -avz -e "ssh -o StrictHostKeyChecking=no" docker-compose.yml .env ${{ secrets.SSH_USER }}@${{ secrets.HOST }}:${{ secrets.TARGET_DIR }}/
+
 
 
       # Déploiement sur le serveur distant
