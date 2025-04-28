@@ -133,12 +133,14 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-
             sudo mkdir -p ${{ secrets.TARGET_DIR }}
 
-            rsync -avz -e "ssh -o StrictHostKeyChecking=no" docker-compose.yml .env ${{ secrets.SSH_USER }}@${{ secrets.HOST }}:${{ secrets.TARGET_DIR }}/
+            # Save private key to a file
+            echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
+            chmod 600 private_key.pem
 
-
+            # Run rsync with the private key
+            rsync -avz -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" docker-compose.yml .env ${{ secrets.SSH_USER }}@${{ secrets.HOST }}:${{ secrets.TARGET_DIR }}/
 
       # Déploiement sur le serveur distant
       - name: 🚀 Deploy Services
