@@ -5,7 +5,8 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-deploy:
+  build-and-push:
+    name: 🏗️ Build et Push sur Docker Hub
     runs-on: ubuntu-latest
     steps:
       - name: 🚚 Get latest code
@@ -91,8 +92,14 @@ jobs:
           docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest .
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest
 
+  prepare-server:
+    name: 🛠️ Préparation du serveur
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v3
 
-      # Préparation du serveur distant
       - name: 🛠️ Prepare Remote Server
         uses: appleboy/ssh-action@master
         with:
@@ -125,15 +132,27 @@ jobs:
               sudo apt install -y docker-compose-plugin
             fi
             
-            # Créer le répertoire cible s'il n'existe pas
-            mkdir -p ${{ secrets.TARGET_DIR }}
+            # Créer le répertoire cible et donner les bonnes permissions
+            sudo mkdir -p ${{ secrets.TARGET_DIR }}
+            sudo chown -R $USER:$USER ${{ secrets.TARGET_DIR }}
+            sudo chmod -R 755 ${{ secrets.TARGET_DIR }}
+            echo "Répertoire ${{ secrets.TARGET_DIR }} créé avec les bonnes permissions"
 
-      # Vérifier la présence des fichiers dans le dépôt
+  copy-config:
+    name: 📂 Copie des fichiers de configuration
+    needs: prepare-server
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v3
+
+      # Vérifier et préparer les fichiers de configuration
       - name: 📂 Vérifier les fichiers de configuration
         run: |
           ls -la
           if [ -f "docker-compose.yml" ]; then
             echo "✅ docker-compose.yml trouvé"
+            chmod 644 docker-compose.yml
           else
             echo "❌ docker-compose.yml introuvable dans le dépôt!"
             exit 1
@@ -141,27 +160,69 @@ jobs:
           
           if [ -f ".env" ]; then
             echo "✅ .env trouvé"
+            chmod 644 .env
           else
             echo "❌ .env introuvable dans le dépôt!"
-            # Créer un fichier .env à partir des secrets si nécessaire
+            # Créer un fichier .env à partir des secrets
             echo "Création d'un fichier .env à partir des secrets..."
             echo "DB_USER=${{ secrets.DB_USER }}" > .env
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
             # Ajoutez d'autres variables selon vos besoins
+            chmod 644 .env
           fi
 
-      # Copier les fichiers de configuration vers le serveur distant
-      - name: 📂 Copier les fichiers de configuration
+      # Copier directement les fichiers sans utiliser tar
+      - name: 📂 Copier les fichiers de configuration via SCP
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "Le répertoire cible est: ${{ secrets.TARGET_DIR }}"
+            ls -la ${{ secrets.TARGET_DIR }}
+
+      - name: 📄 Copier docker-compose.yml
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "docker-compose.yml,.env"
+          source: "docker-compose.yml"
           target: "${{ secrets.TARGET_DIR }}"
-          strip_components: 0
+          overwrite: true
 
-      # Déploiement sur le serveur distant
+      - name: 📄 Copier .env
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: ".env"
+          target: "${{ secrets.TARGET_DIR }}"
+          overwrite: true
+
+      - name: 👁️ Vérifier les fichiers sur le serveur
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.TARGET_DIR }}
+            ls -la
+            if [ ! -f "docker-compose.yml" ] || [ ! -f ".env" ]; then
+              echo "Erreur: Fichiers manquants sur le serveur!"
+              exit 1
+            else
+              echo "Les fichiers ont été copiés avec succès!"
+            fi
+
+  deploy:
+    name: 🚀 Déploiement des services
+    needs: copy-config
+    runs-on: ubuntu-latest
+    steps:
       - name: 🚀 Deploy Services
         uses: appleboy/ssh-action@master
         with:
