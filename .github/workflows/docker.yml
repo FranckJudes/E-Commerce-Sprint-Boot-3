@@ -91,6 +91,7 @@ jobs:
           docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest .
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/ecommerce-notification:latest
 
+
       # Préparation du serveur distant
       - name: 🛠️ Prepare Remote Server
         uses: appleboy/ssh-action@master
@@ -133,14 +134,18 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            sudo mkdir -p ${{ secrets.TARGET_DIR }}
 
-            # Save private key to a file
+            # Sauvegarder la clé privée pour une utilisation avec rsync
             echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
             chmod 600 private_key.pem
 
-            # Run rsync with the private key
-            rsync -avz -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" docker-compose.yml .env ${{ secrets.SSH_USER }}@${{ secrets.HOST }}:${{ secrets.TARGET_DIR }}/
+            # Assurez-vous d'utiliser un chemin correct
+            if [ -f docker-compose.yml ] && [ -f .env ]; then
+              rsync -avz -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" docker-compose.yml .env ${{ secrets.SSH_USER }}@${{ secrets.HOST }}:${{ secrets.TARGET_DIR }}/
+            else
+              echo "Erreur : docker-compose.yml ou .env manquant !"
+              exit 1
+            fi
 
       # Déploiement sur le serveur distant
       - name: 🚀 Deploy Services
