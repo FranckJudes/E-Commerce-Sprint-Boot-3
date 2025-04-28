@@ -134,7 +134,7 @@ jobs:
           script: |
             set -e
 
-            mkdir -p ${{ secrets.TARGET_DIR }}
+            sudo mkdir -p ${{ secrets.TARGET_DIR }}
 
             rsync -avz -e "ssh -o StrictHostKeyChecking=no" docker-compose.yml .env ${{ secrets.SSH_USER }}@${{ secrets.HOST }}:${{ secrets.TARGET_DIR }}/
 
