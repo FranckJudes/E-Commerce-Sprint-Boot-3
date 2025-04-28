@@ -167,7 +167,7 @@ jobs:
             mkdir -p ${{ secrets.TARGET_DIR }}
             cd ${{ secrets.TARGET_DIR }}
 
-            [ -f docker-compose.yml ] || { echo "Erreur : docker-compose.yml manquant !"; exit 1; }
+            # [ -f docker-compose.yml ] || { echo "Erreur : docker-compose.yml manquant !"; exit 1; }
 
             echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
 
