@@ -17,6 +17,7 @@ public class ProductClient {
 
     @Value("${application.config.product-url}")
     private String productUrl;
+    
     private final RestTemplate restTemplate;
 
     public List<PurchaseResponse> purchaseProducts(List<PurchaseRequest> requestBody){

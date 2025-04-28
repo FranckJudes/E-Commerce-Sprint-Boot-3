@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(
         name = "PAYMENT-SERVICE",
-        url = "http://localhost:8222/PAYMENT-SERVICE/api/v1/payments"
+        url = "${application.config.payment-url}"
 )
 public interface PaymentClient {
 

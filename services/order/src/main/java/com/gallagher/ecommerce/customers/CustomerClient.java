@@ -8,7 +8,7 @@ import java.util.Optional;
 
 @FeignClient(
         name = "CUSTOMER-SERVICE",
-        url = "http://localhost:8222/CUSTOMER-SERVICE/api/v1/customers"
+        url = "${application.config.customer-url}"
 )
 public interface CustomerClient {
 
