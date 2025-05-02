@@ -1,21 +1,19 @@
 services:
-
-postgres:
-  container_name: ms_pg_sql
-  image: postgres:latest
-  environment:
-    POSTGRES_USER: gallagher
-    POSTGRES_PASSWORD: gallagher09
-    POSTGRES_DB: customer
-  volumes:
-    - postgres:/var/lib/postgresql/data
-    - ./init-multiple-postgres-databases.sh:/docker-entrypoint-initdb.d/init-multiple-postgres-databases.sh
-  ports:
-    - "5432:5432"
-  networks:
-    - microservices-net
-  restart: unless-stopped
-
+  postgres:
+    container_name: ms_pg_sql
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: gallagher
+      POSTGRES_PASSWORD: gallagher09
+      POSTGRES_DB: customer
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./init-multiple-postgres-databases.sh:/docker-entrypoint-initdb.d/init-multiple-postgres-databases.sh
+    ports:
+      - "5432:5432"
+    networks:
+      - microservices-net
+    restart: unless-stopped
 
   pgadmin:
     container_name: ms_pgadmin
@@ -106,7 +104,6 @@ postgres:
     networks:
       - microservices-net
 
-
   keycloak:
     container_name: ms_keycloak
     image: quay.io/keycloak/keycloak:24.0.2
@@ -120,7 +117,7 @@ postgres:
     command: start-dev
 
   config-server:
-    build: ./services/config-server
+    image: ${DOCKER_HUB_USERNAME}/ecommerce-config-server:latest
     container_name: ecommerce-config-server
     ports:
       - "8888:8888"
@@ -131,7 +128,7 @@ postgres:
     restart: unless-stopped
 
   discovery:
-    build: ./services/discovery
+    image: ${DOCKER_HUB_USERNAME}/ecommerce-discovery:latest
     container_name: ecommerce-discovery
     ports:
       - "8761:8761"
@@ -144,7 +141,7 @@ postgres:
     restart: unless-stopped
     
   gateway:
-    build: ./services/gateway
+    image: ${DOCKER_HUB_USERNAME}/ecommerce-gateway:latest
     container_name: ecommerce-gateway
     ports:
       - "8222:8222"
@@ -158,7 +155,7 @@ postgres:
     restart: unless-stopped
 
   customer:
-    build: ./services/customer
+    image: ${DOCKER_HUB_USERNAME}/ecommerce-customer:latest
     container_name: ecommerce-customer
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -176,7 +173,7 @@ postgres:
     restart: unless-stopped
   
   product:
-    build: ./services/Product
+    image: ${DOCKER_HUB_USERNAME}/ecommerce-product:latest
     container_name: ecommerce-product
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -194,7 +191,7 @@ postgres:
     restart: unless-stopped
 
   order:
-    build: ./services/order
+    image: ${DOCKER_HUB_USERNAME}/ecommerce-order:latest
     container_name: ecommerce-order
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -212,7 +209,7 @@ postgres:
     restart: unless-stopped
 
   finances:
-    build: ./services/finances
+    image: ${DOCKER_HUB_USERNAME}/ecommerce-finances:latest
     container_name: ecommerce-finances
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -229,9 +226,8 @@ postgres:
       - microservices-net
     restart: unless-stopped
 
-  
   notification:
-    build: ./services/notification
+    image: ${DOCKER_HUB_USERNAME}/ecommerce-notification:latest
     container_name: ecommerce-notification
     environment:
       - SPRING_PROFILES_ACTIVE=docker
