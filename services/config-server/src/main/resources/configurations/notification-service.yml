@@ -6,7 +6,7 @@ spring:
             password: gallagher09
             port: 27017
             additional-hosts: localhost
-            database: customer
+            database: notification
             authentication-database: admin
     kafka:
         consumer:

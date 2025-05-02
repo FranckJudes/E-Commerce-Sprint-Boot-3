@@ -1,0 +1,67 @@
+E-Commerce-Sprint-Boot-3/
+├── .github/
+|    └── workflows/
+|        ├── deploy.yml
+|        └── deploy.yml.bak
+├── .vscode/
+|    └── settings.json
+├── README.md
+├── docker-compose.yml
+├── .env
+├── git-helper.sh
+└── services/
+    ├── config-server/
+    |   ├── Dockerfile
+    |   └── ...
+    ├── discovery/
+    |   ├── Dockerfile
+    |   ├── .gitattributes
+    |   ├── .gitignore
+    |   ├── mvnw
+    |   ├── pom.xml
+    |   └── src/
+    |       └── main/
+    |           └── java/
+    |               └── com/
+    |                   └── gallagher/
+    |                       └── discovery/
+    |                           └── DiscoveryApplication.java
+    ├── customer/
+    |   ├── .gitignore
+    |   └── ...
+    ├── Product/
+    |   ├── Dockerfile
+    |   ├── .gitattributes
+    |   ├── .gitignore
+    |   ├── mvnw
+    |   ├── pom.xml
+    |   └── src/
+    |       └── main/
+    |           ├── java/
+    |           |   └── com/
+    |           |       └── gallagher/
+    |           |           └── ecommerce/
+    |           |               └── ProductApplication.java
+    |           └── resources/
+    |               └── application.yml
+    ├── finances/
+    |   ├── Dockerfile
+    |   ├── .gitignore
+    |   ├── pom.xml
+    |   └── ...
+    ├── order/
+    |   ├── .gitignore
+    |   ├── pom.xml
+    |   └── ...
+    ├── notification/
+    |   ├── Dockerfile
+    |   ├── .gitignore
+    |   ├── mvnw
+    |   ├── pom.xml
+    |   └── ...
+    ├── gateway/
+    |   ├── Dockerfile
+    |   ├── .gitignore
+    |   ├── mvnw
+    |   └── ...
+    └── .gitignore

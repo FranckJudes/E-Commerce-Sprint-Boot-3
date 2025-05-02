@@ -1,11 +1,12 @@
 services:
+
   postgres:
     container_name: ms_pg_sql
     image: postgres:latest
     environment:
       POSTGRES_USER: gallagher
       POSTGRES_PASSWORD: gallagher09
-      POSTGRES_BD: 
+      POSTGRES_DB: customer
     volumes:
       - postgres:/var/lib/postgresql/data
     ports:
@@ -13,6 +14,7 @@ services:
     networks:
       - microservices-net
     restart: unless-stopped
+
 
   pgadmin:
     container_name: ms_pgadmin
@@ -115,6 +117,132 @@ services:
     networks:
       - microservices-net
     command: start-dev
+
+  config-server:
+    build: ./services/config-server
+    container_name: ecommerce-config-server
+    ports:
+      - "8888:8888"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+  discovery:
+    build: ./services/discovery
+    container_name: ecommerce-discovery
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - config-server
+    networks:
+      - microservices-net
+    restart: unless-stopped
+    
+  gateway:
+    build: ./services/gateway
+    container_name: ecommerce-gateway
+    ports:
+      - "8222:8222"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - config-server
+      - discovery
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+  customer:
+    build: ./services/customer
+    container_name: ecommerce-customer
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/customer
+      - SPRING_DATASOURCE_USERNAME=gallagher
+      - SPRING_DATASOURCE_PASSWORD=gallagher09
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery:8761/eureka/
+    depends_on:
+      - postgres
+      - config-server
+      - discovery
+    networks:
+      - microservices-net
+    restart: unless-stopped
+  
+  product:
+    build: ./services/Product
+    container_name: ecommerce-product
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/product
+      - SPRING_DATASOURCE_USERNAME=gallagher
+      - SPRING_DATASOURCE_PASSWORD=gallagher09
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery:8761/eureka/
+    depends_on:
+      - postgres
+      - config-server
+      - discovery
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+  order:
+    build: ./services/order
+    container_name: ecommerce-order
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/order
+      - SPRING_DATASOURCE_USERNAME=gallagher
+      - SPRING_DATASOURCE_PASSWORD=gallagher09
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery:8761/eureka/
+    depends_on:
+      - postgres
+      - config-server
+      - discovery
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+  finances:
+    build: ./services/finances
+    container_name: ecommerce-finances
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/finances
+      - SPRING_DATASOURCE_USERNAME=gallagher
+      - SPRING_DATASOURCE_PASSWORD=gallagher09
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery:8761/eureka/
+    depends_on:
+      - postgres
+      - config-server
+      - discovery
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+  
+  notification:
+    build: ./services/notification
+    container_name: ecommerce-notification
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATA_MONGODB_URI=mongodb://gallagher:gallagher09@mongodb:27017/notification?authSource=admin
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery:8761/eureka/
+    depends_on:
+      - mongodb
+      - config-server
+      - discovery
+    networks:
+      - microservices-net
+    restart: unless-stopped
 
 networks:
   microservices-net:
