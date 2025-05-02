@@ -117,7 +117,7 @@ services:
     command: start-dev
 
   config-server:
-    image: ${DOCKER_HUB_USERNAME}/ecommerce-config-server:latest
+    image: franckgallagher/ecommerce-config-server:latest
     container_name: ecommerce-config-server
     ports:
       - "8888:8888"
@@ -128,7 +128,7 @@ services:
     restart: unless-stopped
 
   discovery:
-    image: ${DOCKER_HUB_USERNAME}/ecommerce-discovery:latest
+    image: franckgallagher/ecommerce-discovery:latest
     container_name: ecommerce-discovery
     ports:
       - "8761:8761"
@@ -141,7 +141,7 @@ services:
     restart: unless-stopped
     
   gateway:
-    image: ${DOCKER_HUB_USERNAME}/ecommerce-gateway:latest
+    image: franckgallagher/ecommerce-gateway:latest
     container_name: ecommerce-gateway
     ports:
       - "8222:8222"
@@ -155,7 +155,7 @@ services:
     restart: unless-stopped
 
   customer:
-    image: ${DOCKER_HUB_USERNAME}/ecommerce-customer:latest
+    image: franckgallagher/ecommerce-customer:latest
     container_name: ecommerce-customer
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -173,7 +173,7 @@ services:
     restart: unless-stopped
   
   product:
-    image: ${DOCKER_HUB_USERNAME}/ecommerce-product:latest
+    image: franckgallagher/ecommerce-product:latest
     container_name: ecommerce-product
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -191,7 +191,7 @@ services:
     restart: unless-stopped
 
   order:
-    image: ${DOCKER_HUB_USERNAME}/ecommerce-order:latest
+    image: franckgallagher/ecommerce-order:latest
     container_name: ecommerce-order
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -209,7 +209,7 @@ services:
     restart: unless-stopped
 
   finances:
-    image: ${DOCKER_HUB_USERNAME}/ecommerce-finances:latest
+    image: franckgallagher/ecommerce-finances:latest
     container_name: ecommerce-finances
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -227,7 +227,7 @@ services:
     restart: unless-stopped
 
   notification:
-    image: ${DOCKER_HUB_USERNAME}/ecommerce-notification:latest
+    image: franckgallagher/ecommerce-notification:latest
     container_name: ecommerce-notification
     environment:
       - SPRING_PROFILES_ACTIVE=docker
