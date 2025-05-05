@@ -1,7 +1,7 @@
 spring:
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/finances
+    url: jdbc:postgresql://localhost:5432/payment
     username: gallagher
     password: gallagher09
     driverClassName: org.postgresql.Driver
@@ -19,6 +19,11 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         spring.json.type.mapping: paymentConfirmation:com.example.finances.notification.PaymentNotificationRequest
+
+
+springdoc:
+  api-docs:
+    path: /payments/api-docs
 
 server:
   port: 8060

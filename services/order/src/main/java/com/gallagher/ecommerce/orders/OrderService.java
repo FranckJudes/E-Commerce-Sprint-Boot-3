@@ -36,13 +36,14 @@ public class OrderService {
         var customer = this.customerClient.findCustomerById(request.customerId())
                 .orElseThrow(() -> new BusinessException("Cannot creeate order:: No Customer exists with the provided ID"));
 
+        System.out.println("Customer exist: " + customer);
         // Purchase the products -> products-ms (RestTemplates)
 
         var purchaseProducts = this.productClient.purchaseProducts(request.products());
-
         // persist order
         var order = this.repository.save(mapper.toOrder(request));
-
+  
+ 
         // persist order lines
 
         for (PurchaseRequest purchaseRequest : request.products()) {
@@ -56,6 +57,7 @@ public class OrderService {
             );
         }
 
+      
         //  Start payment process
         var paymentRequest = new PaymentRequest(
                 request.amount(),
@@ -65,7 +67,8 @@ public class OrderService {
                 customer
         );
 
-       paymentClient.requestOrderPayment(paymentRequest);
+        paymentClient.requestOrderPayment(paymentRequest);
+ 
 
         orderProducer.sendOrderConfirmation(
                 new OrderConfirmation(request.reference(), request.amount(), request.paymentMethod(), customer, purchaseProducts)

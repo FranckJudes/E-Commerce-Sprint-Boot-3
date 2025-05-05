@@ -24,8 +24,12 @@ spring:
 server:
   port: 8070
 
+springdoc:
+  api-docs:
+    path: /orders/api-docs
+    
 application:
    config:
      customer-url: http://localhost:8222/api/v1/customers
-     payment-url: http://localhost:8222/api/v1/payments
-     product-url: http://localhost:8222/api/v1/products
+     payment-url:  http://localhost:8222/api/v1/payments
+     product-url:  http://localhost:8222/api/v1/products

@@ -36,13 +36,15 @@ public class EmailService {
         String customerName,
         BigDecimal amount,
         String orderReference
-    ) throws MessagingException{
+    ) throws MessagingException {
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper =
-                     new MimeMessageHelper(message,MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
+                     new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
 
-                     helper.setFrom("contact@gallagher.com");
+        helper.setFrom("judesfranck87@gallagher.com");
+        helper.setTo(destinationEmail);
+        helper.setSubject(EmailTemplates.PAYMENT_CONFIRMATION.getSubject());
 
         final String templateName = EmailTemplates.PAYMENT_CONFIRMATION.getTemplateName();
 
@@ -54,13 +56,11 @@ public class EmailService {
 
         Context context = new Context();
         context.setVariables(templateModel);
-        message.setSubject(EmailTemplates.PAYMENT_CONFIRMATION.getSubject());
-
 
         try {
             String html = templateEngine.process(templateName, context);
-            message.setText(html);
-            helper.setTo(destinationEmail);
+            helper.setText(html, true); // Le true indique que le contenu est HTML
+            
             mailSender.send(message);
 
             Logger.getLogger(EmailService.class.getName()).info("Email sent successfully to " + destinationEmail);
@@ -77,13 +77,15 @@ public class EmailService {
         BigDecimal amount,
         String orderReference,
         List<Product> products
-    ) throws MessagingException{
+    ) throws MessagingException {
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper =
-                     new MimeMessageHelper(message,MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
+                     new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
 
-                     helper.setFrom("contact@gallagher.com");
+        helper.setFrom("judesfranck87@gallagher.com");
+        helper.setTo(destinationEmail);
+        helper.setSubject(EmailTemplates.ORDER_CONFIRMATION.getSubject());
 
         final String templateName = EmailTemplates.ORDER_CONFIRMATION.getTemplateName();
 
@@ -96,13 +98,11 @@ public class EmailService {
 
         Context context = new Context();
         context.setVariables(templateModel);
-        message.setSubject(EmailTemplates.ORDER_CONFIRMATION.getSubject());
-
 
         try {
             String html = templateEngine.process(templateName, context);
-            message.setText(html);
-            helper.setTo(destinationEmail);
+            helper.setText(html, true); // Le true indique que le contenu est HTML
+            
             mailSender.send(message);
 
             Logger.getLogger(EmailService.class.getName()).info("Email sent successfully to " + destinationEmail);

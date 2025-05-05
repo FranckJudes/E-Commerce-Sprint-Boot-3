@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 
 public record ProductResponse(
-         Integer idm,
+         Integer id,
          String name,
 
          String description,

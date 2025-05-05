@@ -36,5 +36,9 @@ spring:
                 timeout: 3000
                 writetimeout: 5000
                 
+springdoc:
+  api-docs:
+    path: /notifications/api-docs
+
 server:
     port: 8040

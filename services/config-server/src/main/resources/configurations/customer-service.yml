@@ -9,6 +9,10 @@ spring:
       database: customer
       authentication-database: admin
 
+springdoc:
+  api-docs:
+    path: /customers/api-docs
 
+    
 server:
   port: 8090

@@ -20,5 +20,10 @@ spring:
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}
 
+    
+springdoc:
+  api-docs:
+    path: /products/api-docs
+
 server:
   port: 8050

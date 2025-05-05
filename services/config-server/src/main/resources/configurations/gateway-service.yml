@@ -1,4 +1,6 @@
 spring:
+  security:
+    enabled: false
   cloud:
     gateway:
       # 1) Découverte dynamique via Eureka
@@ -14,6 +16,7 @@ spring:
           uri: lb://CUSTOMER-SERVICE
           predicates:
             - Path=/api/v1/customers/**
+            
         - id: customer-service-docs
           uri: lb://CUSTOMER-SERVICE
           predicates:
@@ -24,6 +27,7 @@ spring:
           uri: lb://PRODUCT-SERVICE
           predicates:
             - Path=/api/v1/products/**
+            
         - id: product-service-docs
           uri: lb://PRODUCT-SERVICE
           predicates:
@@ -34,6 +38,7 @@ spring:
           uri: lb://ORDER-SERVICE
           predicates:
             - Path=/api/v1/order-lines/**
+
         # --- Order ---
         - id: order-service
           uri: lb://ORDER-SERVICE
@@ -56,8 +61,9 @@ spring:
 
 springdoc:
   swagger-ui:
-    path: /swagger-ui          # Interface centrale
-    urls:                      # Liste affichée dans le menu
+    path: /swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
+    urls:
       - name: customer-service
         url: /customers/api-docs
       - name: product-service
@@ -68,7 +74,8 @@ springdoc:
         url: /payments/api-docs
   api-docs:
     enabled: true
-    path: /gateway/api-docs    # YAML/JSON fusionné
+    path: /v3/api-docs
+
 
 server:
   port: 8222

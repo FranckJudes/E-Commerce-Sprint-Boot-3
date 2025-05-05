@@ -40,5 +40,7 @@ public class Payment {
     @LastModifiedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime lastModifiedDate;
+
+
 }
 

@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 @Validated
 public record Customer(
 
-        Integer id,
+        String id,
 
         @NotNull(message = "Firstname cannot be null")
         String firstname,
